@@ -10,10 +10,12 @@ If you're here because the playlist has not updated in Apple Music, see the `Sch
 ## How It Works
 
 1. Reads all tracks from a Spotify playlist
-2. Searches for each track on Apple Music
-3. Clears the target Apple Music playlist
-4. Adds all matched tracks to the Apple Music playlist
-5. Outputs any unmatched tracks as a downloadable CSV artifact in the Actions run
+2. Compares a hash of the playlist contents against the previous run — skips the sync entirely if nothing has changed
+3. Searches for each track on Apple Music
+4. Clears the target Apple Music playlist
+5. Adds all matched tracks to the Apple Music playlist
+6. Outputs any unmatched tracks as a downloadable CSV artifact in the Actions run
+
 
 ## Schedule
 
