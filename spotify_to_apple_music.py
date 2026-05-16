@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 
 import applemusicpy
+import requests
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -101,32 +102,49 @@ def write_unmatched_report(unmatched: list[dict]) -> str | None:
 
 
 # --- STEP 3: Clear existing Apple Music playlist ---
-def clear_playlist(am: applemusicpy.AppleMusic, playlist_id: str):
-    response = am.get(f"me/library/playlists/{playlist_id}/tracks")
-    track_ids = [t["id"] for t in response.get("data", [])]
+def clear_playlist(developer_token: str, user_token: str, playlist_id: str):
+    headers = {
+        "Authorization": f"Bearer {developer_token}",
+        "Music-User-Token": user_token,
+    }
 
-    # Handle pagination
-    while response.get("next"):
-        response = am.get(response["next"])
-        track_ids += [t["id"] for t in response.get("data", [])]
+    # Fetch current tracks with pagination
+    track_ids = []
+    url = f"https://api.music.apple.com/v1/me/library/playlists/{playlist_id}/tracks"
+    while url:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        track_ids += [t["id"] for t in data.get("data", [])]
+        url = data.get("next")
 
     if not track_ids:
         print("Playlist is already empty.")
         return
 
-    am.delete(
-        f"me/library/playlists/{playlist_id}/tracks",
-        {"data": [{"id": tid, "type": "library-songs"} for tid in track_ids]},
-    )
+    requests.delete(
+        f"https://api.music.apple.com/v1/me/library/playlists/{playlist_id}/tracks",
+        headers=headers,
+        json={"data": [{"id": tid, "type": "library-songs"} for tid in track_ids]},
+    ).raise_for_status()
     print(f"Cleared {len(track_ids)} tracks from existing playlist.")
 
 
 # --- STEP 4: Add new tracks to Apple Music playlist ---
 def add_tracks_to_playlist(
-    am: applemusicpy.AppleMusic, playlist_id: str, track_ids: list[str]
+    developer_token: str, user_token: str, playlist_id: str, track_ids: list[str]
 ):
+    headers = {
+        "Authorization": f"Bearer {developer_token}",
+        "Music-User-Token": user_token,
+    }
     payload = {"data": [{"id": tid, "type": "songs"} for tid in track_ids]}
-    am.post(f"me/library/playlists/{playlist_id}/tracks", payload)
+    response = requests.post(
+        f"https://api.music.apple.com/v1/me/library/playlists/{playlist_id}/tracks",
+        headers=headers,
+        json=payload,
+    )
+    response.raise_for_status()
     print(f"✅ Added {len(track_ids)} tracks to playlist.")
 
 
@@ -138,13 +156,13 @@ def main():
     else:
         print()
 
-    # Init Apple Music client
+    # Init Apple Music client (used for catalog search)
     am = applemusicpy.AppleMusic(
         secret_key=APPLE_PRIVATE_KEY,
         key_id=APPLE_KEY_ID,
         team_id=APPLE_TEAM_ID,
-        music_user_token=APPLE_MUSIC_USER_TOKEN,
     )
+    developer_token = am.token
 
     # Fetch tracks from Spotify
     spotify_tracks = get_spotify_tracks(SPOTIFY_PLAYLIST_ID)
@@ -190,10 +208,12 @@ def main():
 
     # Clear existing playlist and add new tracks
     print(f"\nClearing Apple Music playlist {APPLE_PLAYLIST_ID}...")
-    clear_playlist(am, APPLE_PLAYLIST_ID)
+    clear_playlist(developer_token, APPLE_MUSIC_USER_TOKEN, APPLE_PLAYLIST_ID)
 
     print("Adding matched tracks...")
-    add_tracks_to_playlist(am, APPLE_PLAYLIST_ID, apple_track_ids)
+    add_tracks_to_playlist(
+        developer_token, APPLE_MUSIC_USER_TOKEN, APPLE_PLAYLIST_ID, apple_track_ids
+    )
 
     save_hash(current_hash)
     print("\n✅ Sync complete.")
