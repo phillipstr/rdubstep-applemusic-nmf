@@ -9,7 +9,7 @@ If you're here because the playlist has not updated in Apple Music, see the `Sch
 
 ## How It Works
 
-1. Reads all tracks from a Spotify playlist
+1. Reads all tracks from the Spotify playlist
 2. Compares a hash of the playlist contents against the previous run — skips the sync entirely if nothing has changed
 3. Searches for each track on Apple Music
 4. Clears the target Apple Music playlist
