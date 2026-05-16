@@ -40,6 +40,12 @@ jobs:
       - name: Install dependencies
         run: pip install spotipy applemusicpy
 
+      - name: Restore playlist hash cache
+        uses: actions/cache@v4
+        with:
+          path: playlist_hash.txt
+          key: playlist-hash-${{ runner.os }}
+
       - name: Run sync script
         env:
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
@@ -59,3 +65,10 @@ jobs:
           name: unmatched-tracks-${{ github.run_id }}
           path: unmatched_tracks_*.csv
           if-no-files-found: ignore
+
+      - name: Save playlist hash cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: playlist_hash.txt
+          key: playlist-hash-${{ runner.os }}
