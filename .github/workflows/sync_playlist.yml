@@ -56,6 +56,7 @@ jobs:
           APPLE_MUSIC_USER_TOKEN: ${{ secrets.APPLE_MUSIC_USER_TOKEN }}
           SPOTIFY_PLAYLIST_ID: "18ePsc36VbfsskyTBHpGZN"
           APPLE_PLAYLIST_ID: "pl.u-NpXmza4Cm6xAyp6"
+          DRY_RUN: ${{ github.ref != 'refs/heads/main' }}
         run: python spotify_to_apple_music.py
 
       - name: Upload unmatched tracks report

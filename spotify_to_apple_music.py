@@ -8,7 +8,6 @@ import applemusicpy
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-
 # --- CONFIG ---
 SPOTIFY_CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
 SPOTIFY_CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
@@ -19,6 +18,8 @@ APPLE_TEAM_ID = os.environ["APPLE_TEAM_ID"]
 APPLE_PRIVATE_KEY = os.environ["APPLE_PRIVATE_KEY"]  # Contents of .p8 file
 APPLE_MUSIC_USER_TOKEN = os.environ["APPLE_MUSIC_USER_TOKEN"]
 APPLE_PLAYLIST_ID = os.environ.get("APPLE_PLAYLIST_ID", "pl.u-NpXmza4Cm6xAyp6")
+
+DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
 
 
 # --- STEP 1: Fetch Spotify tracks ---
@@ -131,7 +132,11 @@ def add_tracks_to_playlist(
 
 # --- MAIN ---
 def main():
-    print("=== Spotify → Apple Music Sync ===\n")
+    print("=== Spotify → Apple Music Sync ===")
+    if DRY_RUN:
+        print("🧪 DRY RUN MODE — no changes will be made to Apple Music\n")
+    else:
+        print()
 
     # Init Apple Music client
     am = applemusicpy.AppleMusic(
@@ -176,6 +181,13 @@ def main():
         print("No tracks matched — aborting sync.")
         return
 
+    if DRY_RUN:
+        print("\n🧪 Dry run — skipping playlist clear and track upload.")
+        print(
+            f"Would have cleared playlist {APPLE_PLAYLIST_ID} and added {len(apple_track_ids)} tracks."
+        )
+        return
+
     # Clear existing playlist and add new tracks
     print(f"\nClearing Apple Music playlist {APPLE_PLAYLIST_ID}...")
     clear_playlist(am, APPLE_PLAYLIST_ID)
@@ -183,6 +195,7 @@ def main():
     print("Adding matched tracks...")
     add_tracks_to_playlist(am, APPLE_PLAYLIST_ID, apple_track_ids)
 
+    save_hash(current_hash)
     print("\n✅ Sync complete.")
 
 
