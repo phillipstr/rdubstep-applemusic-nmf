@@ -33,4 +33,6 @@ I think 7 days is sufficient for this file since the playlist updates weekly.
 
 ## Linting
 
-The script is linted with [Ruff](https://docs.astral.sh/ruff/) (code style + formatting) and [Mypy](https://mypy-lang.org/) (type checking) before every sync run. A lint failure will prevent the sync from executing.
+The script is linted with [Ruff](https://docs.astral.sh/ruff/) (code style + formatting) and [Mypy](https://mypy-lang.org/) (type checking) before every sync run. 
+A lint failure will prevent the sync from executing.
+Probably overkill for something like this, but standards are standards.
