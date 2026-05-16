@@ -1,0 +1,76 @@
+name: Sync Spotify → Apple Music
+
+on:
+  schedule:
+    - cron: "0 15 * * 5"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+ 
+      - name: Install linting tools
+        run: pip install ruff mypy
+ 
+      - name: Ruff — lint & format check
+        run: |
+          ruff check spotify_to_apple_music.py
+          ruff format --check spotify_to_apple_music.py
+ 
+      - name: Mypy — type check
+        run: mypy spotify_to_apple_music.py --ignore-missing-imports
+
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install spotipy applemusicpy
+
+      - name: Restore playlist hash cache
+        uses: actions/cache@v4
+        with:
+          path: playlist_hash.txt
+          key: playlist-hash-${{ runner.os }}
+
+      - name: Run sync script
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+          APPLE_MUSIC_USER_TOKEN: ${{ secrets.APPLE_MUSIC_USER_TOKEN }}
+          SPOTIFY_PLAYLIST_ID: "18ePsc36VbfsskyTBHpGZN"
+          APPLE_PLAYLIST_ID: "pl.u-NpXmza4Cm6xAyp6"
+          DRY_RUN: ${{ github.ref != 'refs/heads/main' }}
+        run: python spotify_to_apple_music.py
+
+      - name: Upload unmatched tracks report
+        if: always()  # Upload even if the sync step fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: unmatched-tracks-${{ github.run_id }}
+          path: unmatched_tracks_*.csv
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Save playlist hash cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: playlist_hash.txt
+          key: playlist-hash-${{ runner.os }}
