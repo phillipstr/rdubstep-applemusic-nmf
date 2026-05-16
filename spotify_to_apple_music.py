@@ -156,14 +156,6 @@ def main():
     else:
         print()
 
-    # Init Apple Music client (used for catalog search)
-    am = applemusicpy.AppleMusic(
-        secret_key=APPLE_PRIVATE_KEY,
-        key_id=APPLE_KEY_ID,
-        team_id=APPLE_TEAM_ID,
-    )
-    developer_token = am.token
-
     # Fetch tracks from Spotify
     spotify_tracks = get_spotify_tracks(SPOTIFY_PLAYLIST_ID)
 
@@ -182,6 +174,14 @@ def main():
             f"\n🧪 Dry run — would have synced {len(spotify_tracks)} tracks to Apple Music playlist {APPLE_PLAYLIST_ID}."
         )
         return
+
+    # Init Apple Music client (used for catalog search)
+    am = applemusicpy.AppleMusic(
+        secret_key=APPLE_PRIVATE_KEY,
+        key_id=APPLE_KEY_ID,
+        team_id=APPLE_TEAM_ID,
+    )
+    developer_token = am.token
 
     # Search each track on Apple Music
     apple_track_ids = []
