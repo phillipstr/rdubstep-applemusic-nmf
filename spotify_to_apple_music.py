@@ -46,6 +46,24 @@ def get_spotify_tracks(playlist_id: str) -> list[dict]:
     return tracks
 
 
+# --- STEP 1b: Hash the playlist contents ---
+HASH_FILE = "playlist_hash.txt"
+ 
+def compute_playlist_hash(tracks: list[dict]) -> str:
+    contents = "\n".join(f"{t['name']}|{t['artist']}|{t['album']}" for t in tracks)
+    return hashlib.sha256(contents.encode()).hexdigest()
+ 
+def load_saved_hash() -> str | None:
+    if os.path.exists(HASH_FILE):
+        with open(HASH_FILE, "r") as f:
+            return f.read().strip()
+    return None
+ 
+def save_hash(hash: str):
+    with open(HASH_FILE, "w") as f:
+        f.write(hash)
+
+
 # --- STEP 2: Search Apple Music for each track ---
 def search_apple_music(am: applemusicpy.AppleMusic, track: dict) -> str | None:
     query = f"{track['name']} {track['artist']}"
@@ -119,6 +137,16 @@ def main():
 
     # Fetch tracks from Spotify
     spotify_tracks = get_spotify_tracks(SPOTIFY_PLAYLIST_ID)
+ 
+    # Check if playlist has changed since last sync
+    current_hash = compute_playlist_hash(spotify_tracks)
+    saved_hash = load_saved_hash()
+ 
+    if current_hash == saved_hash:
+        print("Spotify playlist unchanged since last sync — skipping.")
+        return
+ 
+    print("Playlist change detected — proceeding with sync.")
 
     # Search each track on Apple Music
     apple_track_ids = []
