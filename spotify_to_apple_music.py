@@ -177,6 +177,10 @@ def main():
 
     print("Playlist change detected — proceeding with sync.")
 
+    if DRY_RUN:
+        print(f"\n🧪 Dry run — would have synced {len(spotify_tracks)} tracks to Apple Music playlist {APPLE_PLAYLIST_ID}.")
+        return
+
     # Search each track on Apple Music
     apple_track_ids = []
     unmatched_tracks = []
@@ -197,13 +201,6 @@ def main():
 
     if not apple_track_ids:
         print("No tracks matched — aborting sync.")
-        return
-
-    if DRY_RUN:
-        print("\n🧪 Dry run — skipping playlist clear and track upload.")
-        print(
-            f"Would have cleared playlist {APPLE_PLAYLIST_ID} and added {len(apple_track_ids)} tracks."
-        )
         return
 
     # Clear existing playlist and add new tracks
