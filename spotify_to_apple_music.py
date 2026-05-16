@@ -1,10 +1,13 @@
 import csv
+import hashlib
 import os
 import time
 from datetime import datetime
-import spotipy
+ 
 import applemusicpy
+import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+
 
 # --- CONFIG ---
 SPOTIFY_CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
