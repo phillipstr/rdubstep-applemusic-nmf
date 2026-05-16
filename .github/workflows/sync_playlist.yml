@@ -1,0 +1,47 @@
+name: Sync Spotify → Apple Music
+
+on:
+  workflow_run:
+    workflows: ["Lint Python Script"]
+    types:
+      - completed
+  schedule:
+    - cron: "0 15 * * 5"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install spotipy applemusicpy
+
+      - name: Run sync script
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+          APPLE_MUSIC_USER_TOKEN: ${{ secrets.APPLE_MUSIC_USER_TOKEN }}
+          SPOTIFY_PLAYLIST_ID: "18ePsc36VbfsskyTBHpGZN"
+          APPLE_PLAYLIST_ID: "pl.u-NpXmza4Cm6xAyp6"
+        run: python spotify_to_apple_music.py
+
+      - name: Upload unmatched tracks report
+        if: always()  # Upload even if the sync step fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: unmatched-tracks-${{ github.run_id }}
+          path: unmatched_tracks_*.csv
+          if-no-files-found: ignore
