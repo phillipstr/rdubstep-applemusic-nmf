@@ -1,4 +1,4 @@
-# rdubstep-applemusic-nmf
+# r/dubstep NMF Apple Music
 
 Automatically syncs the r/dubstep New Music Friday playlist from [Spotify](https://open.spotify.com/playlist/18ePsc36VbfsskyTBHpGZN?si=JHZULF_HSEW80Hdjtq6R_A)
 to [Apple Music](https://music.apple.com/us/playlist/r-dubstep-nmf/pl.u-NpXmza4Cm6xAyp6).
