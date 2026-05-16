@@ -65,6 +65,7 @@ jobs:
           name: unmatched-tracks-${{ github.run_id }}
           path: unmatched_tracks_*.csv
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Save playlist hash cache
         if: always()

@@ -27,7 +27,9 @@ In the event that the Spotify playlist is updated after 10am EST, simply trigger
 
 ## Unmatched Tracks
 
-Any tracks not found on Apple Music are written to a timestamped CSV (`unmatched_tracks_YYYYMMDD_HHMMSS.csv`) and uploaded as a GitHub Actions artifact. Artifacts are available for 90 days under the relevant Actions run.
+Any tracks not found on Apple Music are written to a timestamped CSV (`unmatched_tracks_YYYYMMDD_HHMMSS.csv`) and uploaded as a GitHub Actions artifact. 
+Artifacts are available for 7 days under the relevant Actions run.
+I think 7 days is sufficient for this file since the playlist updates weekly.
 
 ## Linting
 
