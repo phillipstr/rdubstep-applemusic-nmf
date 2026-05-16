@@ -20,10 +20,12 @@ APPLE_PLAYLIST_ID = os.environ.get("APPLE_PLAYLIST_ID", "pl.u-NpXmza4Cm6xAyp6")
 
 # --- STEP 1: Fetch Spotify tracks ---
 def get_spotify_tracks(playlist_id: str) -> list[dict]:
-    sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
-        client_id=SPOTIFY_CLIENT_ID,
-        client_secret=SPOTIFY_CLIENT_SECRET,
-    ))
+    sp = spotipy.Spotify(
+        auth_manager=SpotifyClientCredentials(
+            client_id=SPOTIFY_CLIENT_ID,
+            client_secret=SPOTIFY_CLIENT_SECRET,
+        )
+    )
 
     tracks = []
     results = sp.playlist_tracks(playlist_id)
@@ -31,11 +33,13 @@ def get_spotify_tracks(playlist_id: str) -> list[dict]:
         for item in results["items"]:
             track = item.get("track")
             if track:
-                tracks.append({
-                    "name": track["name"],
-                    "artist": track["artists"][0]["name"],
-                    "album": track["album"]["name"],
-                })
+                tracks.append(
+                    {
+                        "name": track["name"],
+                        "artist": track["artists"][0]["name"],
+                        "album": track["album"]["name"],
+                    }
+                )
         results = sp.next(results) if results["next"] else None
 
     print(f"Found {len(tracks)} tracks on Spotify.")
@@ -87,13 +91,15 @@ def clear_playlist(am: applemusicpy.AppleMusic, playlist_id: str):
 
     am.delete(
         f"me/library/playlists/{playlist_id}/tracks",
-        {"data": [{"id": tid, "type": "library-songs"} for tid in track_ids]}
+        {"data": [{"id": tid, "type": "library-songs"} for tid in track_ids]},
     )
     print(f"Cleared {len(track_ids)} tracks from existing playlist.")
 
 
 # --- STEP 4: Add new tracks to Apple Music playlist ---
-def add_tracks_to_playlist(am: applemusicpy.AppleMusic, playlist_id: str, track_ids: list[str]):
+def add_tracks_to_playlist(
+    am: applemusicpy.AppleMusic, playlist_id: str, track_ids: list[str]
+):
     payload = {"data": [{"id": tid, "type": "songs"} for tid in track_ids]}
     am.post(f"me/library/playlists/{playlist_id}/tracks", payload)
     print(f"✅ Added {len(track_ids)} tracks to playlist.")
@@ -108,7 +114,7 @@ def main():
         secret_key=APPLE_PRIVATE_KEY,
         key_id=APPLE_KEY_ID,
         team_id=APPLE_TEAM_ID,
-        music_user_token=APPLE_MUSIC_USER_TOKEN
+        music_user_token=APPLE_MUSIC_USER_TOKEN,
     )
 
     # Fetch tracks from Spotify
@@ -125,7 +131,9 @@ def main():
             unmatched_tracks.append(track)
         time.sleep(0.1)  # Avoid hammering the API
 
-    print(f"\nMatched {len(apple_track_ids)}/{len(spotify_tracks)} tracks on Apple Music.")
+    print(
+        f"\nMatched {len(apple_track_ids)}/{len(spotify_tracks)} tracks on Apple Music."
+    )
 
     # Write unmatched tracks to CSV artifact
     write_unmatched_report(unmatched_tracks)
